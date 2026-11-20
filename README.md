@@ -14,7 +14,7 @@ npm run build:single   # un solo archivo autocontenido en dist-single/index.html
 npm run typecheck      # comprobación de tipos
 ```
 
-Requiere Node 20 o superior. El mapa base necesita internet (mosaicos de OpenStreetMap).
+Requiere Node 20 o superior. El mapa base necesita internet (mosaicos de Esri World Street Map con datos de OpenStreetMap; sin API key, requiere atribución).
 
 ## Rutas
 
@@ -23,7 +23,7 @@ Se usa `HashRouter` (`#/mapa`, `#/reportes/:id`…) para que funcione en cualqui
 | Ruta | Pantalla |
 |---|---|
 | `#/` | Inicio: 3 métricas calculadas, mapa, conexión urbana destacada |
-| `#/mapa` | Mapa urbano: filtros de categoría/estado, búsqueda, panel contextual |
+| `#/mapa` | Mapa urbano: filtros de categoría/estado, búsqueda, panel contextual y capas de calor (`?capa=densidad` o `?capa=temperatura`) |
 | `#/reportes` | Listado con buscador, filtros por estado y orden |
 | `#/reportes/:id` | Detalle: evidencia, mapa, corroboración, objeciones, historial, relacionados |
 | `#/reportar` | Asistente de 4 pasos que publica en `localStorage` |
@@ -72,6 +72,7 @@ Qué hace el servidor: una confirmación por persona y reporte (clave primaria),
 - **Aguakan**: `GET https://www2.aguakan.com/wp-json/wp/v2/posts?categories=7` (sin autenticación, CORS habilitado). Los avisos se clasifican (corte, fuga, baja presión, obra, comunicado), se filtran por ciudad y se ubican de forma aproximada con un catálogo local de colonias/avenidas (`src/features/avisos/api.ts`). Caché local de 20 min.
 - **Gobierno de Quintana Roo**: `GET https://qroo.gob.mx/wp-json/wp/v2/posts?search=…` (misma API WordPress, CORS habilitado). Se buscan «bacheo», «encharcamiento», «inundación», «pluvial», «repavimentación», «rehabilitación vial» y «cárcamo», y solo se conservan comunicados cuyo título trate de calles o drenaje y que mencionen Cancún/Benito Juárez. Son notas de prensa, no un registro completo de baches.
 - **Open-Meteo**: lluvia de las últimas/próximas 24 h en Cancún para estimar riesgo de encharcamiento (sin API key).
+- **Mapas de calor**: densidad de reportes (núcleo gaussiano de 750 m, más peso a reportes con más confirmaciones) y temperatura / sensación térmica de Open-Meteo en una rejilla de 6×6 puntos interpolada (IDW). Ambas se dibujan en un canvas como imagen sobre el mapa (`src/components/map/HeatLayers.tsx`).
 - **Documentos**: GeoJSON (puntos, líneas o polígonos → centroide) y CSV (`categoria,titulo,descripcion,referencia,lat,lng,fecha`, separador `,` o `;`). Plantilla descargable en `#/datos`. Los registros importados entran como *Pendiente* con origen «externo».
 
 ## Recompensas
@@ -84,4 +85,4 @@ Puntos calculados a partir de los aportes (no se pueden duplicar): reporte +10, 
 - Usuario: alias e identificador demo sin cuenta. La protección contra duplicados de confirmación es por navegador, no por persona.
 - Moderación, antispam, notificaciones push y canalización a autoridades: no existen; las notificaciones del encabezado se derivan de los datos locales.
 - Clima, ambiente y biodiversidad: solo descritos como extensiones futuras; no se muestran cifras simuladas.
-- PWA: el service worker guarda la interfaz; **los mosaicos del mapa no se guardan sin conexión**. Para uso intensivo conviene un proveedor de mosaicos propio (la política de OpenStreetMap limita el uso intensivo de sus servidores).
+- PWA: el service worker guarda la interfaz; **los mosaicos del mapa no se guardan sin conexión**. Para uso intensivo o comercial conviene una cuenta propia de mosaicos (Esri, MapTiler, Stadia, etc.), ya que los servidores gratuitos limitan ese uso. CARTO ya exige API key.

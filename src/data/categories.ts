@@ -11,19 +11,21 @@ export interface CategoryMeta {
   /** Texto de la etiqueta con contraste AA */
   ink: string
   example: string
+  /** Etiqueta de grupo para tarjetas («Infraestructura», etc.) */
+  group: string
 }
 
 export const CATEGORIES: Record<CategoryId, CategoryMeta> = {
   bache: {
-    id: 'bache', label: 'Bache', short: 'Baches', color: '#F28C38', tint: '#FEF1E6', ink: '#8A4410',
+    id: 'bache', label: 'Bache', short: 'Baches', color: '#F07A1E', tint: '#FEF0E4', ink: '#8A4410', group: 'Infraestructura',
     example: 'Ej. «Bache profundo en el carril derecho, junto al semáforo»',
   },
   agua: {
-    id: 'agua', label: 'Falta de agua', short: 'Agua', color: '#138DE2', tint: '#E7F4FD', ink: '#0B5B96',
+    id: 'agua', label: 'Falta de agua', short: 'Agua', color: '#1E88E5', tint: '#E6F2FD', ink: '#0B5B96', group: 'Agua potable',
     example: 'Ej. «Sin agua potable desde ayer en toda la cuadra»',
   },
   inundacion: {
-    id: 'inundacion', label: 'Inundación / encharcamiento', short: 'Inundaciones', color: '#9566D7', tint: '#F2ECFB', ink: '#5B3596',
+    id: 'inundacion', label: 'Inundación / encharcamiento', short: 'Inundaciones', color: '#8E5BD6', tint: '#F2ECFB', ink: '#5B3596', group: 'Inundaciones',
     example: 'Ej. «Agua acumulada que cubre media calle después de la lluvia»',
   },
 }
@@ -50,7 +52,7 @@ export const STATUSES: Record<Status, StatusMeta> = {
     help: 'Ya tiene confirmaciones; la comunidad revisa aportes y coincidencias.',
   },
   corroborado: {
-    id: 'corroborado', label: 'Corroborado', long: 'Corroborado por vecinos', bg: '#E3F1FC', fg: '#0C3159', border: '#A9D3F5',
+    id: 'corroborado', label: 'Corroborado', long: 'Corroborado por vecinos', bg: '#E8F7EE', fg: '#17663A', border: '#BFE7CF',
     help: 'Cumple la regla demo de corroboración. No es una validación oficial.',
   },
   resuelto: {

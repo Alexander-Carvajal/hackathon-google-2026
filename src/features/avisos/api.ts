@@ -220,13 +220,17 @@ export interface RainInfo {
   peakHour: string | null
   risk: 'bajo' | 'medio' | 'alto'
   hourly: { time: string; mm: number; prob: number }[]
+  /** Condiciones actuales (para la tarjeta «Clima en Cancún») */
+  current: { temp: number; feels: number; code: number; isDay: boolean; time: string }
+  /** Probabilidad de lluvia en las próximas 3 horas */
+  probSoon: number
 }
 
 export async function fetchRain(signal?: AbortSignal): Promise<RainInfo> {
-  const url = 'https://api.open-meteo.com/v1/forecast?latitude=21.1619&longitude=-86.8515&hourly=precipitation,precipitation_probability&past_days=1&forecast_days=2&timezone=America%2FCancun'
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=21.1619&longitude=-86.8515&current=temperature_2m,apparent_temperature,weather_code,is_day&hourly=precipitation,precipitation_probability&past_days=1&forecast_days=2&timezone=America%2FCancun'
   const res = await fetch(url, { signal })
   if (!res.ok) throw new Error(`Open-Meteo respondió ${res.status}`)
-  const j = (await res.json()) as { hourly: { time: string[]; precipitation: (number | null)[]; precipitation_probability: (number | null)[] } }
+  const j = (await res.json()) as { current: { time: string; temperature_2m: number; apparent_temperature: number; weather_code: number; is_day: number }; hourly: { time: string[]; precipitation: (number | null)[]; precipitation_probability: (number | null)[] } }
   // Hora actual en Cancún (UTC-5) con el mismo formato que la API: AAAA-MM-DDTHH:00
   const nowLocal = new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 13) + ':00'
   const idx = Math.max(0, j.hourly.time.findIndex((t) => t >= nowLocal))
@@ -243,5 +247,19 @@ export async function fetchRain(signal?: AbortSignal): Promise<RainInfo> {
     last24, next24, maxProb, risk,
     peakHour: nextMm[peak] > 0 ? j.hourly.time[idx + peak] : null,
     hourly: j.hourly.time.slice(idx, idx + 24).map((time, i) => ({ time, mm: nextMm[i], prob: pr[idx + i] })),
+    current: { temp: j.current.temperature_2m, feels: j.current.apparent_temperature, code: j.current.weather_code, isDay: j.current.is_day === 1, time: j.current.time },
+    probSoon: Math.max(0, ...pr.slice(idx, idx + 3)),
   }
+}
+
+/** Descripción corta del código WMO de Open-Meteo. */
+export function weatherLabel(code: number): string {
+  if (code === 0) return 'Despejado'
+  if (code <= 2) return 'Parcialmente nublado'
+  if (code === 3) return 'Nublado'
+  if (code <= 48) return 'Niebla'
+  if (code <= 57) return 'Llovizna'
+  if (code <= 67 || (code >= 80 && code <= 82)) return 'Lluvia'
+  if (code >= 95) return 'Tormenta'
+  return 'Variable'
 }
